@@ -8,7 +8,7 @@
        state: absent
    - name: Copy Syslog Scripts
      copy:
-       src: scripts/syslog.sh
+       src: syslog.sh
        dest: /tmp/syslog.sh
        owner: root
        group: root
