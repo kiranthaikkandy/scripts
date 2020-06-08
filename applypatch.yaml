@@ -1,0 +1,136 @@
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Running prepatch info commands
+      shell: |
+        echo -e "\nuname -a"
+        echo "========"
+        uname -a
+        echo -e "\nrunlevel"
+        echo "========"
+        runlevel
+        echo -e "\nredhat-release"
+        echo "=============="
+        cat /etc/redhat-release
+        echo -e "\ndf output"
+        echo "========"
+        df -h
+        echo -e "\nmount output"
+        echo "==========="
+        mount
+        echo -e "\nchkconfig output"
+        echo "==============="
+        chkconfig --list | grep ":on"
+        echo -e "\nPS output"
+        echo "========"
+        ps -fax
+        echo -e "\nifconfig output"
+        echo "=============="
+        ifconfig
+        echo -e "\nnetstat output"
+        echo "============="
+        netstat -ano
+        echo -e "\nroute output"
+        echo "==========="
+        route -n
+        echo -e "\niptables output"
+        echo "=============="
+        iptables --list -n -v
+        echo -e "\nmemory info"
+        echo "=========="
+        cat /proc/meminfo
+        echo -e "\nCPU info"
+        echo "======="
+        cat /proc/cpuinfo
+        echo -e "\nMDSTAT output"
+        echo "============"
+        cat /proc/mdstat
+        echo -e "\nLVDISPLAY"
+        echo "========="
+        lvdisplay
+        echo -e "\nVGDISPLAY"
+        echo "========="
+        vgdisplay
+        echo -e "\nPackage Details"
+        echo "=============="
+        rpmquery -a
+        echo -e "\nuser details"
+        echo "==========="
+        cat /etc/passwd
+        echo -e "\nGroup Details"
+        echo "============"
+        cat /etc/group
+        echo -e "\nscheduled jobs"
+        echo "============="
+        cat /var/spool/cron/*
+        echo -e "\nHost Entry"
+        echo "========="
+        cat /etc/hosts
+        echo -e "\nHosts Allowed"
+        echo "============"
+        cat /etc/hosts.allow
+        echo -e "\nHosts Denied"
+        echo "==========="
+        cat /etc/hosts.deny
+        echo -e "\nDNS Configured"
+        echo "============="
+        cat /etc/resolv.conf
+        echo -e "\nKernel parameters"
+        echo "================"
+        cat /etc/sysctl.conf
+        echo -e "\nDMESG Output"
+        echo "==========="
+        dmesg
+        echo -e "\nNetwork Output"
+        echo "==========="
+        cat /etc/sysconfig/network
+        echo -e "\nNSswitch Output"
+        echo "==========="
+        cat /etc/nsswitch.conf
+        echo -e "\nMULTIPATH Output"
+        echo "==========="
+        cat /etc/multipath/bindings
+        echo -e "\nNTP Output"
+        echo "==========="
+        cat /etc/ntp.conf
+        echo -e "\nSUDOERS Output"
+        echo "==========="
+        cat /etc/sudoers
+        echo -e "\nEXPORT Output"
+        echo "==========="
+        cat /etc/exports
+        echo -e "\nIfcfg-eth Output"
+        echo "==========="
+        cat /etc/sysconfig/network-scripts/ifcfg-eth*
+        echo -e "\nIfcfg-bond Output"
+        echo "==========="
+        cat /etc/sysconfig/network-scripts/ifcfg-bond*
+      register: prepatch
+      ignore_errors: True
+      no_log: True
+    - name: Removing old prepatch info file 
+      local_action: file path=patch/{{ inventory_hostname }}-prepatch.txt state=absent
+    - name: Storing prepatch info to directory outputfolder
+      local_action: copy content={{ prepatch.stdout }} dest=patch/{{ inventory_hostname }}-prepatch.txt
+    - name: Updating all package to latest. Brocken will be skipped
+      yum:
+        name: '*'
+        state: latest
+        skip_broken: yes
+      register: result
+    - name: Running postpatch info commands
+      shell: |
+        echo "================"
+        echo -e "\nMounts"
+        df -hP
+        mount -a
+        echo "================"
+        echo -e "\nInstalled RPM"
+        rpm -qa --last
+      register: postpatch
+      ignore_errors: True
+    - name: Removing old postpatch info file
+      local_action: file path=patch/{{ inventory_hostname }}-postpatch.txt state=absent
+    - name: Storing postpatch info to directory outputfolder
+      local_action: copy content={{ postpatch.stdout }} dest=patch/{{ inventory_hostname }}-postpatch.txt
