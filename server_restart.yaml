@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Checking reboot requirment
+      shell: |
+         KERNEL_NEW=$(rpm -q -last kernel |head -1 | awk '{print $1}' | sed 's/kernel-//'); KERNEL_NOW=$(uname -r); if [[ $KERNEL_NEW = $KERNEL_NOW ]]; then echo "reboot_needed"; else echo "reboot_not_needed"; fi
+      ignore_errors: False
+      register: reboot_required
+    - name: Reboot server as kernel updated
+      command: shutdown -r +1 Rebooting System After Patching
+      poll: 0
+      when: reboot_required.stdout == "reboot_needed"
+      register: reboot_started
+      ignore_errors: True
+    - name: Pause for 2 minute
+      pause:
+       minutes: 1 
+      when: reboot_required.stdout == "reboot_needed"
+    - name: Wait server to come up
+      wait_for_connection:
+       delay: 90
+       timeout: 120
+      when: reboot_required.stdout == "reboot_needed"
