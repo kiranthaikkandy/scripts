@@ -36,9 +36,52 @@ pipeline {
             sh '''
             #!/bin/bash
             ansible-playbook  scripts/precheck.yaml -i inventory  
-            rm -rf inventory
             '''
           }
-        }  
+        }
+        stage('Apply Patch') { 
+          steps {
+            sh '''
+            #!/bin/bash
+            ansible-playbook  scripts/applypatch.yaml -i inventory  
+            '''
+          }
+        }
+        stage('Server Restart') { 
+          steps {
+            sh '''
+            #!/bin/bash
+            ansible-playbook  scripts/server_restart.yaml -i inventory  
+            '''
+          }
+        }
+        stage('Post-Check') { 
+          steps {
+            sh '''
+            #!/bin/bash
+            ansible-playbook  scripts/postcheck.yaml -i inventory  
+            '''
+          }
+        }
+        stage('Compare') { 
+          steps {
+            sh '''
+            #!/bin/bash
+            ansible-playbook  scripts/compare.yaml -i inventory
+            ansible all -a "cat /tmp/patchcmpr.txt" -i inventory
+            '''
+          }
+        }
+        stage('Cleanup') { 
+          steps {
+            sh '''
+            #!/bin/bash
+            cp -pr scripts/*-prepatch.txt patch/
+            cp -pr scripts/*-postpatch.txt patch/  
+            rm -rf inventory
+            rm -rf scripts
+            '''
+          }
+        }   
     }
 }
