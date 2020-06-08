@@ -5,7 +5,7 @@
   tasks:
     - name: Checking reboot requirment
       shell: |
-         KERNEL_NEW=$(rpm -q -last kernel |head -1 | awk '{print $1}' | sed 's/kernel-//'); KERNEL_NOW=$(uname -r); if [[ $KERNEL_NEW = $KERNEL_NOW ]]; then echo "reboot_needed"; else echo "reboot_not_needed"; fi
+         KERNEL_NEW=$(rpm -q -last kernel |head -1 | awk '{print $1}' | sed 's/kernel-//'); KERNEL_NOW=$(uname -r); if [[ $KERNEL_NEW != $KERNEL_NOW ]]; then echo "reboot_needed"; else echo "reboot_not_needed"; fi
       ignore_errors: False
       register: reboot_required
     - name: Reboot server as kernel updated
