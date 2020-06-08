@@ -110,9 +110,9 @@
       ignore_errors: True
       no_log: True
     - name: Removing old prepatch info file 
-      local_action: file path=patch/{{ inventory_hostname }}-prepatch.txt state=absent
+      local_action: file path={{ inventory_hostname }}-prepatch.txt state=absent
     - name: Storing prepatch info to directory outputfolder
-      local_action: copy content={{ prepatch.stdout }} dest=patch/{{ inventory_hostname }}-prepatch.txt
+      local_action: copy content={{ prepatch.stdout }} dest={{ inventory_hostname }}-prepatch.txt
     - name: Updating all package to latest. Brocken will be skipped
       yum:
         name: '*'
@@ -131,6 +131,6 @@
       register: postpatch
       ignore_errors: True
     - name: Removing old postpatch info file
-      local_action: file path=patch/{{ inventory_hostname }}-postpatch.txt state=absent
+      local_action: file path={{ inventory_hostname }}-postpatch.txt state=absent
     - name: Storing postpatch info to directory outputfolder
-      local_action: copy content={{ postpatch.stdout }} dest=patch/{{ inventory_hostname }}-postpatch.txt
+      local_action: copy content={{ postpatch.stdout }} dest={{ inventory_hostname }}-postpatch.txt
