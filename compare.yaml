@@ -1,0 +1,12 @@
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Executinng Compare Script
+     shell: |
+       bash /tmp/syslog.sh compare > /tmp/patchcmpr.txt
+       cat /tmp/patchcmpr.txt
+     register: compare
+     ignore_errors: True
+     no_log: True
+   
